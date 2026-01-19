@@ -25,4 +25,6 @@ typedef struct {
 }header;
 
 
+void server(void);
+
 #endif
