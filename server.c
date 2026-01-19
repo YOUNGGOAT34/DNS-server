@@ -27,7 +27,7 @@ void server(void){
       }
    
       int reuse = 1;
-      if (setsockopt(udpSocket, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse)) < 0) {
+      if (setsockopt(udpSocket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
          printf("SO_REUSEPORT failed: %s \n", strerror(errno));
          exit(EXIT_FAILURE);
       }
@@ -58,7 +58,26 @@ void server(void){
           printf("Received %d bytes: %s\n", bytesRead, buffer);
       
           
-          char response[1] = { '\0' };
+          char response[DNS_HEADER_SIZE];
+
+          memset(response,0,sizeof(response));
+
+         dns_header *header=(dns_header *)response;
+         header->packet_id=htons(1234);
+         header->query_response=1;
+         header->opcode=0;
+         header->authoritative_answer=0;
+         header->truncation=0;
+         header->recursion_desired=0;
+         header->recursion_available=0;
+         header->reserved=0;
+         header->response_code=0;
+         header->question_count=0;
+         header->answer_record_count=htons(0);
+         header->authority_record_count=htons(0);
+         header->additional_record_count=htons(0);
+
+
       
          
           if (sendto(udpSocket, response, sizeof(response), 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress)) == -1) {

@@ -1,6 +1,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#define DNS_HEADER_SIZE 12
+
 typedef signed int i32;
 typedef unsigned int u32;
 typedef unsigned short int u16;
@@ -22,7 +24,7 @@ typedef struct {
        u16 authority_record_count;
        u16 additional_record_count;
 
-}header;
+}dns_header;
 
 
 void server(void);
