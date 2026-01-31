@@ -64,15 +64,19 @@ void server(void){
 
          dns_header *header=(dns_header *)response;
          header->packet_id=htons(1234);
-         header->query_response=1;
-         header->opcode=0;
-         header->authoritative_answer=0;
-         header->truncation=0;
-         header->recursion_desired=0;
-         header->recursion_available=0;
-         header->reserved=0;
-         header->response_code=0;
-         header->question_count=0;
+         u16 flags=0;
+
+
+         flags |= (1 << 15); 
+         flags |= (0 << 11);  
+         flags |= (1 << 10);  
+         flags |= (0 << 9);    
+         flags |= (1 << 8);  
+         flags |= (1 << 7);   
+         flags |= (0 << 0); 
+         
+         header->flags=htons(flags);
+          
          header->answer_record_count=htons(0);
          header->authority_record_count=htons(0);
          header->additional_record_count=htons(0);

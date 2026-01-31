@@ -9,16 +9,18 @@ typedef unsigned short int u16;
 typedef char i8;
 typedef unsigned char u8;
 
+
+#define DNS_QR(flags)     (((flags) >> 15) & 0x1)
+#define DNS_OPCODE(flags) (((flags) >> 11) & 0xF)
+#define DNS_AA(flags)     (((flags) >> 10) & 0x1)
+#define DNS_TC(flags)     (((flags) >> 9)  & 0x1)
+#define DNS_RD(flags)     (((flags) >> 8)  & 0x1)
+#define DNS_RA(flags)     (((flags) >> 7)  & 0x1)
+#define DNS_RCODE(flags)  ((flags) & 0xF)
+
 typedef struct {
        u16 packet_id;
-       u8  query_response:1;
-       u8 opcode:4;
-       u8 authoritative_answer:1;
-       u8 truncation:1;
-       u8 recursion_desired:1;
-       u8 recursion_available:1;
-       u8 reserved:3;
-       u8 response_code:4;
+       u16 flags;
        u16 question_count;
        u16 answer_record_count;
        u16 authority_record_count;
