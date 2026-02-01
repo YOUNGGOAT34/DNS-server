@@ -43,22 +43,23 @@ void server(void){
       }
    
       int bytesRead;
-      char buffer[512];
+      char recv_buffer[512];
       socklen_t clientAddrLen = sizeof(clientAddress);
       
       while (1) {
          
-          bytesRead = recvfrom(udpSocket, buffer, sizeof(buffer), 0, (struct sockaddr*)&clientAddress, &clientAddrLen);
+          bytesRead = recvfrom(udpSocket, recv_buffer, sizeof(recv_buffer), 0, (struct sockaddr*)&clientAddress, &clientAddrLen);
           if (bytesRead == -1) {
               perror("Error receiving data");
               break;
           }
       
-          buffer[bytesRead] = '\0';
-          printf("Received %d bytes: %s\n", bytesRead, buffer);
+          recv_buffer[bytesRead] = '\0';
+
+          printf("Received %d bytes: %s\n", bytesRead, recv_buffer);
       
           
-          char response[DNS_HEADER_SIZE];
+          char response[512];
 
           memset(response,0,sizeof(response));
 
@@ -82,9 +83,45 @@ void server(void){
          header->additional_record_count=htons(0);
 
 
-      
          
-          if (sendto(udpSocket, response, sizeof(response), 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress)) == -1) {
+
+         u8 question_buffer[512];
+         memset(question_buffer,0,sizeof(question_buffer));
+         
+         u8 *ptr=question_buffer;
+
+         encode_qname(question_buffer,"codecrafters.io");
+
+         /*
+             right now ptr is pointing at the beginning of the buffer,we need to find where the 
+             encoded qname ends so that we can use the next 2 bytes for QTYPE and the next 2 bytes for QCLASS.
+             we can find the end of the qname since in the encoding we added 0 at the end.
+         */
+
+         while(*ptr!=0){
+            ptr++;
+         }
+
+         /*
+           A record=1
+
+         */
+
+         *(u16 *)ptr=htons(1);
+         ptr+=2;
+
+          /*
+           IN class=1
+           
+         */
+
+         *(u16 *)ptr=htons(1);
+         ptr+=2;
+
+         u16 question_len=ptr-question_buffer;
+         
+         memcpy(response+DNS_HEADER_SIZE,question_buffer,question_len);
+          if (sendto(udpSocket, response, DNS_HEADER_SIZE+question_len, 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress)) == -1) {
               perror("Failed to send response");
           }
       }

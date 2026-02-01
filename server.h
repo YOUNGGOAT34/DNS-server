@@ -19,12 +19,14 @@ typedef unsigned char u8;
 #define DNS_RCODE(flags)  ((flags) & 0xF)
 
 
+
+
 typedef struct{
        u8 encoded_name[255];
        u16 type;
        u16 _class;
 
-}question;
+}dns_question;
 
 typedef struct {
        u16 packet_id;
@@ -35,6 +37,8 @@ typedef struct {
        u16 additional_record_count;
 
 }dns_header;
+
+
 
 
 void server(void);
