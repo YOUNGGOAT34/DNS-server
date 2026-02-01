@@ -69,10 +69,10 @@ void server(void){
 
          flags |= (1 << 15); 
          flags |= (0 << 11);  
-         flags |= (1 << 10);  
+         flags |= (0 << 10);  
          flags |= (0 << 9);    
-         flags |= (1 << 8);  
-         flags |= (1 << 7);   
+         flags |= (0 << 8);  
+         flags |= (0 << 7);   
          flags |= (0 << 0); 
          
          header->flags=htons(flags);
@@ -90,4 +90,43 @@ void server(void){
       }
       
       close(udpSocket);
+}
+
+
+
+void encode_qname(u8 *buffer,const i8 *host){
+
+   /*
+      
+      The format for the DNS encoding is [the number of bytes of a label][label characters]....and we repeat the same thing for .com ,
+      ignoring the . 
+      for example :example.com will be 
+      [7]['e']['x']['a']['m']['p']['l']['e'][3]['c']['o']['m'][0]
+      the zero at the end is the terminator
+
+   */
+       
+   const i8 *ptr=host;//pointer to the current character
+   u8 *len=buffer;//position to add the current label's length
+   u8 *dest=buffer+1;//position to add the current character
+   i32 count=0;//number of characters of the current label
+
+   while(*ptr){
+       if(*ptr=='.'){
+           *len=count;
+           len=dest++;
+           count=0;
+       }else{
+           *dest++=*ptr;
+           count++;
+       }
+
+       ptr++;
+
+   }
+
+   *len=count;
+   *dest++=0;
+
+
 }

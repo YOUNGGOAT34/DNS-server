@@ -18,6 +18,14 @@ typedef unsigned char u8;
 #define DNS_RA(flags)     (((flags) >> 7)  & 0x1)
 #define DNS_RCODE(flags)  ((flags) & 0xF)
 
+
+typedef struct{
+       u8 encoded_name[255];
+       u16 type;
+       u16 _class;
+
+}question;
+
 typedef struct {
        u16 packet_id;
        u16 flags;
@@ -30,5 +38,6 @@ typedef struct {
 
 
 void server(void);
+void encode_qname(u8 *buffer,const i8 *host);
 
 #endif
