@@ -63,8 +63,12 @@ void server(void){
 
           memset(response,0,sizeof(response));
 
+             //=====header section======
+
          dns_header *header=(dns_header *)response;
          header->packet_id=htons(1234);
+
+      
          u16 flags=0;
 
 
@@ -83,7 +87,15 @@ void server(void){
          header->additional_record_count=htons(0);
 
 
+
          
+         //=======question section===========
+
+         /*
+             NAME(variable)
+             RECORD(2 bytes)
+             CLASS(2 bytes)
+         */
 
          u8 question_buffer[512];
          memset(question_buffer,0,sizeof(question_buffer));
@@ -119,9 +131,64 @@ void server(void){
          ptr+=2;
 
          u16 question_len=ptr-question_buffer;
+         header->question_count=htons(1);
+      
          
          memcpy(response+DNS_HEADER_SIZE,question_buffer,question_len);
-          if (sendto(udpSocket, response, DNS_HEADER_SIZE+question_len, 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress)) == -1) {
+
+         //=======Answer section=============
+
+         //its structure
+
+         /*
+          
+            NAME      (variable)
+            TYPE      (2 bytes)
+            CLASS     (2 bytes)
+            TTL       (4 bytes)
+            RDLENGTH  (2 bytes)
+            RDATA     (4 bytes)
+         
+         */
+
+         u8 *answer_start_pos=(u8 *)response+DNS_HEADER_SIZE+question_len;
+         encode_qname(answer_start_pos,"codecrafters.io");
+
+         /*Now the start_answer_pos points to the beginning of the name ,it should be advanced upto end 
+         of name+1 so that we can add the next sections of the answer into the response*/
+
+         while(*answer_start_pos!=0) answer_start_pos++;
+         
+         answer_start_pos++;
+         
+         *(u16 *)answer_start_pos=htons(1);
+         answer_start_pos+=2;
+
+         *(u16 *)answer_start_pos=htons(1);
+         answer_start_pos+=2;
+
+         *(u32 *)answer_start_pos=htonl(60);
+         answer_start_pos+=4;
+
+
+         *(u16 *)answer_start_pos=htons(4);
+         answer_start_pos+=2;
+
+         answer_start_pos[0]=8;
+         answer_start_pos[1]=8;
+         answer_start_pos[2]=8;
+         answer_start_pos[3]=0;
+
+         answer_start_pos+=4;
+
+      
+
+
+         header->answer_record_count=htons(1);
+
+         size_t response_len=answer_start_pos-(u8 *)response;
+
+          if (sendto(udpSocket, response, response_len, 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress)) == -1) {
               perror("Failed to send response");
           }
       }
