@@ -59,6 +59,9 @@ void server(void){
           printf("Received %d bytes: %s\n", bytesRead, recv_buffer);
       
           
+    
+
+         
           char response[512];
 
           memset(response,0,sizeof(response));
@@ -66,21 +69,34 @@ void server(void){
              //=====header section======
 
          dns_header *header=(dns_header *)response;
-         header->packet_id=htons(1234);
 
-      
-         u16 flags=0;
-
-
-         flags |= (1 << 15); 
-         flags |= (0 << 11);  
-         flags |= (0 << 10);  
-         flags |= (0 << 9);    
-         flags |= (0 << 8);  
-         flags |= (0 << 7);   
-         flags |= (0 << 0); 
+         /* ===PARSE THE DNS HEADER from request===*/
+         dns_header *request_header=(dns_header *)recv_buffer;
+         u16 request_flags=ntohs(request_header->flags);
          
-         header->flags=htons(flags);
+         u16 opcode=DNS_OPCODE(request_flags);
+         u16 RD=DNS_RD(request_flags);
+
+
+         u16 response_flags=0;
+
+         header->packet_id=request_header->packet_id;
+
+         response_flags |=(1<<15);
+
+         response_flags |=(opcode<<11);
+
+         if(RD){
+               response_flags |=(1<<8);
+         }
+
+
+         if(opcode !=0){
+             response_flags |=4;
+         }
+
+    
+         header->flags=htons(response_flags);
           
          header->answer_record_count=htons(0);
          header->authority_record_count=htons(0);
