@@ -111,50 +111,54 @@ void server(void){
              NAME(variable)
              RECORD(2 bytes)
              CLASS(2 bytes)
+
+             this will be parsed from the receive buffer
          */
 
-         u8 question_buffer[512];
-         memset(question_buffer,0,sizeof(question_buffer));
-         
-         u8 *ptr=question_buffer;
-
-         encode_qname(question_buffer,"codecrafters.io");
+    
+         u8 *start_of_question=((u8 *)recv_buffer+DNS_HEADER_SIZE);
+         u8 *end_of_question=start_of_question;
 
          /*
-             right now ptr is pointing at the beginning of the buffer,we need to find where the 
+             right now start_of_question ptr is pointing at the beginning of the buffer,we need to find where the 
              encoded qname ends so that we can use the next 2 bytes for QTYPE and the next 2 bytes for QCLASS.
              we can find the end of the qname since in the encoding we added 0 at the end.
          */
 
-         while(*ptr!=0){
-            ptr++;
+         
+
+         while(*end_of_question!=0){
+            end_of_question++;
          }
 
          /*
-           A record=1
+           record
 
          */
 
-         *(u16 *)ptr=htons(1);
-         ptr+=2;
+         u16 qtype=ntohs(*(u16 *)end_of_question);
+         end_of_question+=2;
 
           /*
-           IN class=1
+        class
            
          */
 
-         *(u16 *)ptr=htons(1);
-         ptr+=2;
+         u16 qclass=ntohs(*(u16 *)end_of_question);
 
-         u16 question_len=ptr-question_buffer;
+         
+         end_of_question+=2;
+
+         u16 question_len=start_of_question-end_of_question;
+
          header->question_count=htons(1);
       
          
-         memcpy(response+DNS_HEADER_SIZE,question_buffer,question_len);
+         memcpy(response+DNS_HEADER_SIZE,recv_buffer+DNS_HEADER_SIZE,question_len);
 
          //=======Answer section=============
-
-         //its structure
+         
+         //it's structure
 
          /*
           
