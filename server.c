@@ -168,18 +168,21 @@ void server(void){
             TTL       (4 bytes)
             RDLENGTH  (2 bytes)
             RDATA     (4 bytes)
+
+
+            The values will be parsed from the receive buffer
          
          */
 
          u8 *answer_start_pos=(u8 *)response+DNS_HEADER_SIZE+question_len;
-         encode_qname(answer_start_pos,"codecrafters.io");
-
+         u8 *src=(u8 *)response+DNS_HEADER_SIZE;
+       
          /*Now the start_answer_pos points to the beginning of the name ,it should be advanced upto end 
          of name+1 so that we can add the next sections of the answer into the response*/
 
-         while(*answer_start_pos!=0) answer_start_pos++;
+         while(*src!=0) *answer_start_pos++=*src++;
          
-         answer_start_pos++;
+         *answer_start_pos++=0;
          
          *(u16 *)answer_start_pos=htons(1);
          answer_start_pos+=2;
@@ -189,7 +192,7 @@ void server(void){
 
          *(u32 *)answer_start_pos=htonl(60);
          answer_start_pos+=4;
-
+   
 
          *(u16 *)answer_start_pos=htons(4);
          answer_start_pos+=2;
