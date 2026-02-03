@@ -131,6 +131,8 @@ void server(void){
             end_of_question++;
          }
 
+         end_of_question++;
+
          /*
            record
 
@@ -149,7 +151,7 @@ void server(void){
          
          end_of_question+=2;
 
-         u16 question_len=start_of_question-end_of_question;
+         u16 question_len=end_of_question-start_of_question;
 
          header->question_count=htons(1);
       
@@ -200,7 +202,7 @@ void server(void){
          answer_start_pos[0]=8;
          answer_start_pos[1]=8;
          answer_start_pos[2]=8;
-         answer_start_pos[3]=0;
+         answer_start_pos[3]=8;
 
          answer_start_pos+=4;
 
